@@ -4,7 +4,13 @@
 
 *Part of the [Study Buddy](README.md) MCP server project.*
 
+**Difficulty:** Intermediate ▰▰▰▱ &nbsp;·&nbsp; **Time:** ~60 minutes
+
 ## What are we building?
+
+If you study with Claude, you've probably done this: paste your notes into a chat, explain what they mean, get quizzed, close the tab, and start from zero again tomorrow. Claude never remembers which topics you're weak on. It's never seen your past papers. Every session, you're re-teaching it your own material.
+
+That's the gap MCP closes.
 
 Most people first hear about MCP through a sentence like, "It lets AI use tools." That's technically true, but it doesn't really explain why you'd care.
 
@@ -14,7 +20,7 @@ We're building Study Buddy, a local MCP server that gives Claude Desktop access 
 
 You drop notes, slides, PDFs, textbook extracts, and past papers into a few folders. Claude can then search through them, explain a topic in a style you choose, quiz you using your actual material, analyse the pattern of your past papers, and remember which topics you keep getting wrong.
 
-I built the first version of this over a weekend of DBMS exam prep, because I was tired of re-explaining the same notes to a chatbot every single session. It had no memory, no idea what my past papers looked like, and no sense of which topics I kept failing on. Study Buddy fixes all three, and it's grounded only in files I actually own.
+I built the first version of this over a weekend of DBMS exam prep, because I ran into exactly this problem: a chatbot with no memory, no idea what my past papers looked like, and no sense of which topics I kept failing on. Study Buddy fixes all three, and it's grounded only in files I actually own.
 
 The project is useful on its own, but the bigger goal is understanding how MCP actually works.
 
@@ -1274,6 +1280,8 @@ Discover topics
 * Create an MCP server for a completely different domain using the same architecture
 
 Study Buddy is a study project. The actual takeaway is that MCP lets you build small, focused systems that make AI useful with your own data and workflows.
+
+If you build one, especially if you take the same scaffolding into a completely different domain, I'd genuinely like to see it. Drop a comment, or open a PR if you extend the tool set on this one. That's the whole point of a project tutorial: not to be followed once and closed, but to be forked into something else.
 
 ---
 
