@@ -1,5 +1,7 @@
 # Build Your Own MCP Server with Python and Claude
 
+<img src="assets/banner.png" alt="Study Buddy" width="100%" />
+
 *Part of the [Study Buddy](README.md) MCP server project.*
 
 ## What are we building?
@@ -116,6 +118,10 @@ The `materials` folder is where the user puts their study material.
 `pyqs` is for previous-year papers or mock papers.
 
 `archive` is for files you no longer want included in active study sessions.
+
+Here's what mine looked like once I dropped my own DBMS notes and past papers in:
+
+![Sample notes and past papers dropped into materials/content and materials/pyqs](<assets/Screenshot 2026-07-01 131221.png>)
 
 ---
 
@@ -964,6 +970,10 @@ def topics_index():
 
 Notice that resources return Markdown strings, built by reusing the exact same `list_topics()` tool function from Step 8. There's no separate database query living inside `topics_index`: it calls the tool like any other piece of Python would. Tools and resources aren't two disconnected systems; a resource is free to be a thin formatting layer on top of a tool.
 
+Here's `study://content` reading back through the Inspector's Resources tab, next to the raw JSON envelope MCP wraps it in:
+
+![MCP Inspector Resources tab showing content_index and its raw JSON response](assets/mcp-inspector-resources.png)
+
 A simple way to remember the difference between the three primitives:
 
 * Use a **tool** when Claude needs to *do* something.
@@ -971,6 +981,10 @@ A simple way to remember the difference between the three primitives:
 * Use a **prompt** when the user should be able to start a repeatable workflow.
 
 One Claude Desktop quirk worth knowing before you move on: resources there are user-attached, not auto-fetched. Claude doesn't quietly read `study://topics` on its own: you (the user) have to explicitly attach it from the paperclip/attachment menu, the same way you'd attach a file. Tools, by contrast, are model-initiated: Claude decides to call them based on the conversation. If you build a resource and then wonder why Claude never seems to "notice" it, this is why.
+
+This is that attach menu in practice. Click the **+** in the chat box, then **Add from study-buddy**, and all three resources show up ready to attach, right alongside the four prompts from Step 13:
+
+![Claude Desktop's + menu showing study-buddy's resources and prompts available to attach](assets/connectors.png)
 
 ---
 
@@ -981,6 +995,10 @@ Prompts are reusable workflows.
 Instead of typing the same long instruction every time, the user can choose a prompt from the MCP client and fill in a few fields.
 
 Study Buddy has four: studying one topic, studying everything, quizzing, and PYQ practice.
+
+The Inspector's Prompts tab is the fastest way to see what a prompt actually asks for before you wire it into a client: pick `study`, and it renders the `topic` and `style` fields straight from the `Field(description=...)` metadata:
+
+![MCP Inspector Prompts tab showing the study prompt's topic and style fields](assets/mcp-inspector-prompts.png)
 
 ```python
 @mcp.prompt(title="Study a topic")
@@ -1121,8 +1139,12 @@ This is much easier than debugging inside Claude Desktop, because you get to see
 
 For example, test `list_content`, `read_file`, `search_content`, `discover_topics`, and `extract_pyq_style` before you move on. Try calling `log_result` with `score` greater than `total` too: you should see your own validation message come back cleanly instead of a crash.
 
-![MCP Inspector showing the Study Buddy tool list](assets/inspector-tools.png)
+![MCP Inspector showing the Study Buddy tool list](assets/mcp-inspector-tools.png)
 *The MCP Inspector is the fastest way to test tools, resources, prompts, and input validation before connecting a real client.*
+
+Here's what calling a tool directly in the Inspector looks like, filling in `discover_topics`'s arguments and watching the JSON response come back:
+
+![Calling discover_topics in MCP Inspector and viewing the JSON result](assets/inspector-tool-call.gif)
 
 > ⚠️ Gotcha: if `node` stays alive on port 6277 after you close the Inspector, the next `mcp dev` run fails with `Proxy Server PORT IS IN USE`. On Windows, fix it with `Get-Process node | Stop-Process -Force` in PowerShell.
 
@@ -1172,7 +1194,9 @@ The most common failure at this step isn't a code bug: it's a wrong path in the 
 
 Put a few original sample files into `materials/content/` and one or two sample papers into `materials/pyqs/`.
 
-Then try these prompts in Claude Desktop.
+Then try these prompts in Claude Desktop. Here's the full loop in action, starting with discovery and registration:
+
+![Claude Desktop discovering topics from the sample notes and registering one](assets/discover-topics.gif)
 
 ```text
 What topics are in my materials?
@@ -1186,6 +1210,10 @@ Teach me one of my weak topics in an exam-cram style.
 ```text
 Quiz me on this topic with 5 questions.
 ```
+
+And here's a quiz running end to end, one question at a time, graded against the topic you just taught yourself:
+
+![Claude Desktop running a 5-question quiz, grading each answer and logging the result](assets/quiz.gif)
 
 ```text
 Give me a PYQ-style test using my past papers.
