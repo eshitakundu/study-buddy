@@ -142,22 +142,21 @@ uv add "mcp[cli]>=1.27,<2" pypdf python-docx
 
 If you already created the project folder, run `uv init` inside it. Do not add a project name after the command.
 
-Your folder should eventually look like this:
+Following these steps, your folder will look like this:
 
 ```text
 study-buddy/
-├── assets/
-│   └── banner.png
 ├── materials/
 │   ├── content/
 │   ├── pyqs/
 │   └── archive/
 ├── study_buddy.py
+├── study.db          ← appears after Step 6, first time you run the server
 ├── pyproject.toml
-├── uv.lock
-├── README.md
-└── LICENSE
+└── uv.lock
 ```
+
+That's the whole project. `README.md`, `LICENSE`, and the `assets/` folder in my own repo are there because I published it, not because the server needs them: skip them entirely if you're just building this for yourself.
 
 The `materials` folder is where the user puts their study material.
 
