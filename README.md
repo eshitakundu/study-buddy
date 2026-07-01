@@ -179,7 +179,7 @@ uv run mcp dev study_buddy.py
 
 Opens the **MCP Inspector** in your browser (via `npx`). List and call every tool, read resources, and preview rendered prompts, all before touching your client.
 
-<img src="assets/inspector-tools.png" alt="MCP Inspector showing the Study Buddy tool list" width="100%" />
+<img src="assets/mcp-inspector-tools.png" alt="MCP Inspector showing the Study Buddy tool list" width="100%" />
 
 > ⚠️ **Gotcha:** if `node` stays alive on port 6277 after the Inspector closes, the next `mcp dev` fails with *Proxy Server PORT IS IN USE*. Fix on Windows:
 > ```powershell
@@ -272,6 +272,8 @@ Debug logs → `%APPDATA%\Claude\logs\mcp-server-study-buddy.log`
 
 > 💡 **Important:** in Claude Desktop, resources are **user-attached**, not auto-fetched. Tools are model-initiated. Design accordingly.
 
+<img src="assets/connectors.png" alt="Claude Desktop's + menu showing study-buddy's resources and prompts available to attach" width="100%" />
+
 ---
 
 ## 💬 Prompts
@@ -361,6 +363,8 @@ n:      5
 ```
 
 The client chains discovery → registration → retrieval → quiz → logging, all against your own material.
+
+<img src="assets/quiz.gif" alt="Claude Desktop running a 5-question quiz, grading each answer and logging the result" width="100%" />
 
 ---
 
