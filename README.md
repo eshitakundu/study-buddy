@@ -179,6 +179,8 @@ uv run mcp dev study_buddy.py
 
 Opens the **MCP Inspector** in your browser (via `npx`). List and call every tool, read resources, and preview rendered prompts — all before touching your client.
 
+<img src="assets/inspector-tools.png" alt="MCP Inspector showing the Study Buddy tool list" width="100%" />
+
 > ⚠️ **Gotcha:** if `node` stays alive on port 6277 after the Inspector closes, the next `mcp dev` fails with *Proxy Server PORT IS IN USE*. Fix on Windows:
 > ```powershell
 > Get-Process node | Stop-Process -Force
@@ -214,6 +216,8 @@ Config file:
 > 3. **Fully quit** Claude Desktop from the system tray before reopening. Closing the window isn't enough.
 
 Debug logs → `%APPDATA%\Claude\logs\mcp-server-study-buddy.log`
+
+<img src="assets/claude-desktop-connected.png" alt="Claude Desktop with Study Buddy connected" width="100%" />
 
 ---
 
