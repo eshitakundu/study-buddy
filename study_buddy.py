@@ -1,10 +1,9 @@
 """
 Study Buddy: an MCP server that turns Claude into a focused exam coach for a single subject.
 
-Drop your notes into materials/content/ and your past papers into materials/pyqs/.
-Claude can discover topics from your material, study them in any style you ask for,
-quiz you on them, and run PYQ-pattern practice. A SQLite tracker keeps score so you
-always know what to drill next.
+Drop notes into materials/content/ and past papers into materials/pyqs/.
+Claude discovers topics from the material, teaches them in any style, quizzes on them,
+and runs PYQ-pattern practice. SQLite tracks results per topic so weakest ones surface first.
 """
 
 import difflib
@@ -33,7 +32,8 @@ for d in (CONTENT_DIR, PYQS_DIR, ARCHIVE_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
 
-# ---------- database ----------
+# database
+
 def _db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -64,7 +64,8 @@ def _init_db():
 _init_db()
 
 
-# ---------- file helpers ----------
+# file helpers
+
 TEXT_EXTS = {".txt", ".md"}
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp"}
 VALID_FOLDERS = {"content", "pyqs", "archive"}
@@ -87,7 +88,7 @@ def _safe_path(folder: str, name: str) -> Path:
 
 
 def _extract_text(path: Path) -> str | None:
-    """Return extracted text. Cached by path + mtime so repeated calls are instant."""
+    # cached by (path, mtime) so repeated reads of the same file do not re-parse
     if not path.exists() or not path.is_file():
         return None
     ext = path.suffix.lower()
@@ -122,7 +123,8 @@ def _list_folder(folder: str) -> list[dict]:
     return items
 
 
-# ---------- topic helpers ----------
+# topic helpers
+
 def _normalize_topic(name: str) -> str:
     return re.sub(r"\s+", " ", name.strip().lower())
 
@@ -133,7 +135,7 @@ def _registered_topics() -> list[str]:
 
 
 def _match_topic(name: str) -> str | None:
-    """Fuzzy-match a user-provided topic string to a registered topic. Returns the registered name or None."""
+    # exact match first, then fuzzy fallback so 'loops' matches 'loop', etc.
     target = _normalize_topic(name)
     registered = _registered_topics()
     if target in registered:
@@ -142,7 +144,8 @@ def _match_topic(name: str) -> str | None:
     return close[0] if close else None
 
 
-# ---------- materials tools ----------
+# materials tools
+
 @mcp.tool(title="List content files")
 def list_content():
     """List all files in materials/content/ (your notes, slides, textbook extracts)."""
@@ -177,7 +180,7 @@ def search_content(
     query: Annotated[str, Field(description="Word or phrase to search for in content files.")],
     max_results: Annotated[int, Field(description="Maximum number of matching files to return.", ge=1, le=20)] = 5,
 ):
-    """Search across all files in materials/content/. Returns matching files with a snippet around each hit."""
+    """Search across all files in materials/content/."""
     q = query.lower().strip()
     if not q:
         return []
@@ -200,7 +203,8 @@ def search_content(
     return hits
 
 
-# ---------- topic discovery + registration ----------
+# topic discovery + registration
+
 _HEADING_RE = re.compile(r"^(?:#{1,6}\s+(.+)|([A-Z][A-Za-z0-9 ,/&-]{2,60})$)", re.MULTILINE)
 _BOLD_RE = re.compile(r"\*\*([^*]{2,40})\*\*")
 _STEM_RE = re.compile(
@@ -228,7 +232,7 @@ def _candidate_topics_from_text(text: str) -> list[str]:
 def discover_topics(
     min_count: Annotated[int, Field(description="Minimum times a candidate must appear to be returned.", ge=1)] = 2,
 ):
-    """Scan all materials and return ranked candidate topics. Call before registering topics to study."""
+    """Scan all materials and return ranked candidate topics."""
     from collections import Counter
     counter: Counter[str] = Counter()
     for folder in (CONTENT_DIR, PYQS_DIR):
@@ -310,7 +314,8 @@ def archive_topic(
     return f"Archived topic: {matched}"
 
 
-# ---------- progress ----------
+# progress
+
 @mcp.tool(title="Log a quiz result")
 def log_result(
     topic: Annotated[str, Field(description="Topic the quiz covered. Must be a registered topic.")],
@@ -340,13 +345,14 @@ def log_result(
 def weakest_topics(
     n: Annotated[int, Field(description="How many of the weakest topics to return.", ge=1, le=20)] = 3,
 ):
-    """Return the n topics with the lowest mastery. Drill these next. Ignores archived topics."""
+    """Return the n topics with the lowest mastery. Ignores archived topics."""
     rows = list_topics(include_archived=False)
     rows.sort(key=lambda r: (r["mastery_pct"], -r["attempts"]))
     return rows[:n]
 
 
-# ---------- PYQ analysis ----------
+# PYQ analysis
+
 _QUESTION_SPLIT_RE = re.compile(
     r"(?m)^(?:Q\.?\s*\d+|Question\s+\d+|\d{1,2}[.)])\s*[:.\-]?\s*"
 )
@@ -385,7 +391,7 @@ def _stem_pattern(q: str) -> str | None:
 def extract_pyq_style(
     name: Annotated[str, Field(description="PYQ filename inside materials/pyqs/.")],
 ):
-    """Analyze a past paper and return its structural style: question count, types, marks distribution, common stems."""
+    """Analyze a past paper and return its structural style: question count, types, mark distribution, common stems."""
     from collections import Counter
     path = _safe_path("pyqs", name)
     if not path.exists():
@@ -424,7 +430,8 @@ def extract_pyq_questions(
     return _parse_pyq_questions(text)[:max_questions]
 
 
-# ---------- manual file archive ----------
+# manual file archive
+
 @mcp.tool(title="Move files to archive")
 def archive_files(
     folder: Annotated[str, Field(description="Source folder: 'content' or 'pyqs'.")],
@@ -445,7 +452,8 @@ def archive_files(
     return {"moved": moved, "missing": missing}
 
 
-# ---------- resources ----------
+# resources
+
 def _index_md(title: str, items: list[dict]) -> str:
     if not items:
         return f"# {title}\n\n*Empty. Drop files into this folder.*"
@@ -485,26 +493,41 @@ def topics_index():
     return "\n".join(lines)
 
 
-# ---------- prompts ----------
+# prompts
+
 @mcp.prompt(title="Study a topic")
 def study(
     topic: Annotated[str, Field(description="Topic you want to study.")],
-    style: Annotated[str, Field(description="How you want it taught. e.g. 'default', 'feynman', 'socratic', '5 bullet summary', 'eli5'.")] = "default",
+    style: Annotated[str, Field(description="How you want it taught. Any style works: 'default', 'feynman', 'socratic', 'summary', 'eli5', 'exam-cram', or anything else you specify.")] = "default",
 ):
-    """Teach me this topic from my content in any style I choose."""
+    """Teach a topic from your content in any teaching style."""
     return [
         base.UserMessage(
             f"Teach me **{topic}** using the **{style}** style.\n\n"
-            "Workflow:\n"
-            f"1. Call `search_content` with query='{topic}' to find relevant files.\n"
-            "2. Call `read_file` on each matching file with folder='content' to load the actual material.\n"
-            f"3. Teach me {topic} grounded ONLY in what you just read, using the **{style}** style.\n"
-            "   - default: clear structured explanation\n"
-            "   - feynman: simplest possible language, build up from basics, name analogies\n"
-            "   - socratic: ask me leading questions to draw the answer out of me\n"
-            "   - 5 bullet summary: five tight bullets, nothing more\n"
-            "   - eli5: explain like I'm five\n"
-            "4. End by offering to quiz me on it."
+            "How to approach this:\n"
+            f"- Locate the topic in my content files (use search_content or read_file as needed with folder='content').\n"
+            "- Ground everything ONLY in what you read from my files. Do not invent material.\n"
+            f"- Apply the '{style}' style. If it is a well-known one (feynman, socratic, eli5, summary, exam-cram) use that convention. Otherwise interpret the intent sensibly.\n"
+            "- End by offering to quiz me on it."
+        )
+    ]
+
+
+@mcp.prompt(title="Study everything")
+def study_all(
+    style: Annotated[str, Field(description="Teaching style to apply to every topic.")] = "default",
+    order: Annotated[str, Field(description="'weakest_first' to prioritize low-mastery topics, or 'registered' to follow registration order.")] = "weakest_first",
+):
+    """Walk through every active registered topic in turn, teaching each one."""
+    return [
+        base.UserMessage(
+            f"Teach me every active topic I have registered, one at a time, using the **{style}** style.\n\n"
+            "How to approach this:\n"
+            "- Call list_topics(include_archived=False) to get the active topics.\n"
+            f"- If order='{order}' is 'weakest_first', sort by mastery_pct ascending; otherwise keep the returned order.\n"
+            "- For each topic: search and read the relevant content files, then teach that topic in the requested style.\n"
+            "- After each topic, pause and ask if I'm ready for the next one. Wait for my confirmation.\n"
+            "- Skip archived topics."
         )
     ]
 
@@ -514,18 +537,17 @@ def quiz(
     topic: Annotated[str, Field(description="Topic the quiz should cover.")],
     n: Annotated[int, Field(description="How many questions?", ge=1, le=50)] = 5,
 ):
-    """Generated quiz drawn only from your content files."""
+    """Generate a quiz drawn only from your content files."""
     return [
         base.UserMessage(
             f"Quiz me on **{topic}** with {n} questions.\n\n"
-            "Workflow:\n"
-            f"1. Call `search_content` with query='{topic}' to find the relevant content files.\n"
-            "2. Call `read_file` with folder='content' on each match to load the material.\n"
-            f"3. Generate {n} questions grounded ONLY in what you read.\n"
-            "4. Ask me one question at a time. Wait for my answer before moving on.\n"
-            "5. After each answer: tell me if I'm correct and explain briefly.\n"
-            f"6. At the end, call `log_result` with topic='{topic}', score=<correct>, total={n}.\n"
-            f"7. If `log_result` says the topic isn't registered, call `register_topic` with name='{topic}' first, then retry."
+            "How to approach this:\n"
+            f"- Locate '{topic}' in my content files (search_content and read_file with folder='content').\n"
+            f"- Generate {n} questions grounded ONLY in what you read.\n"
+            "- Ask one question at a time. Wait for my answer before continuing.\n"
+            "- After each answer, tell me if it's correct and give a short explanation.\n"
+            f"- At the end, call log_result with topic='{topic}', score=<correct>, total={n}.\n"
+            f"- If log_result reports the topic isn't registered, call register_topic with name='{topic}' first, then retry."
         )
     ]
 
@@ -533,28 +555,23 @@ def quiz(
 @mcp.prompt(title="PYQ test")
 def pyq_test(
     topic: Annotated[str, Field(description="Topic the test should cover.")],
-    mode: Annotated[str, Field(description="'ask' (let user choose), 'verbatim' (real PYQ questions), or 'style' (new questions in PYQ style).")] = "ask",
+    mode: Annotated[str, Field(description="'ask' to let the user choose, 'verbatim' for real PYQ questions, or 'style' for new questions in PYQ style.")] = "ask",
     n: Annotated[int, Field(description="How many questions?", ge=1, le=50)] = 5,
 ):
     """Test on past-paper questions: real ones, or new ones in the same style."""
     return [
         base.UserMessage(
             f"PYQ test on **{topic}** with {n} questions. Mode: **{mode}**.\n\n"
-            "Workflow:\n"
-            "1. Call `list_pyqs` to see available past papers.\n"
-            f"2. Identify which papers are most relevant to '{topic}'.\n"
-            "3. If mode='ask': ask me whether I want VERBATIM (drill actual past questions) or STYLE (new questions in that style). Wait for my answer before continuing.\n"
-            "4. If VERBATIM:\n"
-            "   - Call `extract_pyq_questions` on the relevant paper(s).\n"
-            f"   - Filter to questions about '{topic}'. Pick {n}.\n"
-            "   - Ask them one at a time. Grade each answer.\n"
-            "5. If STYLE:\n"
-            "   - Call `extract_pyq_style` on the relevant paper(s) to get the structural style data.\n"
-            f"   - Call `search_content` with query='{topic}' and `read_file` with folder='content' on matches.\n"
-            f"   - Generate {n} NEW questions that match the extracted style (question types, mark distribution, common stems) but are grounded in your content.\n"
-            "   - Ask them one at a time. Grade each answer.\n"
-            f"6. At the end, call `log_result` with topic='{topic}', score=<correct>, total={n}.\n"
-            f"7. If `log_result` says the topic isn't registered, call `register_topic` with name='{topic}' first, then retry."
+            "How to approach this:\n"
+            "- Call list_pyqs to see available past papers and pick the ones most relevant to the topic.\n"
+            "- If mode='ask', ask me whether I want VERBATIM (real past questions) or STYLE (new questions in that style). Wait for my answer.\n"
+            "- For VERBATIM: use extract_pyq_questions on the relevant paper(s), filter to the topic, "
+            f"and pick {n}. Ask one at a time and grade each answer.\n"
+            "- For STYLE: use extract_pyq_style on the relevant paper(s) to get the structural profile, "
+            f"then search and read my content files, then generate {n} NEW questions that match the extracted style "
+            "(types, mark distribution, common stems) grounded in my content. Ask one at a time and grade.\n"
+            f"- At the end, call log_result with topic='{topic}', score=<correct>, total={n}.\n"
+            f"- If log_result reports the topic isn't registered, call register_topic with name='{topic}' first, then retry."
         )
     ]
 
