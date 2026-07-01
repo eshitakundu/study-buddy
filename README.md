@@ -6,7 +6,7 @@
 
 **Turn your notes and past papers into a focused, local AI study system.**
 
-An MCP server that gives Claude structured access to your study material — so it can teach, quiz, and drill you on your own content, and remember how you did.
+An MCP server that gives Claude structured access to your study material, so it can teach, quiz, and drill you on your own content, and remember how you did.
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
 [![MCP](https://img.shields.io/badge/MCP-1.28-8B5CF6)](https://modelcontextprotocol.io)
@@ -14,7 +14,7 @@ An MCP server that gives Claude structured access to your study material — so 
 [![SQLite](https://img.shields.io/badge/SQLite-embedded-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-[**Quick Start**](#-quick-start) · [**How it Works**](#-how-it-works) · [**Tools & Prompts**](#-tools) · [**Extend**](#-extend)
+[**Quick Start**](#-quick-start) · [**How it Works**](#-how-it-works) · [**Tools & Prompts**](#-tools) · [**Extend**](#-extend) · [**Full Tutorial**](TUTORIAL.md)
 
 </div>
 
@@ -22,7 +22,7 @@ An MCP server that gives Claude structured access to your study material — so 
 
 ## ✨ Why Study Buddy
 
-LLMs can reason. They can't reach into your world — your notes, your past papers, your progress.
+LLMs can reason. They can't reach into your world: your notes, your past papers, your progress.
 
 Study Buddy closes that gap with the **Model Context Protocol (MCP)**. You drop material into two folders. Your MCP client (Claude Desktop, Cursor, anything MCP-compatible) can now:
 
@@ -31,7 +31,7 @@ Study Buddy closes that gap with the **Model Context Protocol (MCP)**. You drop 
 <td width="33%" valign="top">
 
 ### 📚 Learn
-Teach any topic from **your material**, in any style you ask for — Feynman, Socratic, exam-cram, ELI5, or anything else.
+Teach any topic from **your material**, in any style you ask for: Feynman, Socratic, exam-cram, ELI5, or anything else.
 
 </td>
 <td width="33%" valign="top">
@@ -49,7 +49,7 @@ Local SQLite tracks mastery per topic across sessions. Weakest topics surface fi
 </tr>
 </table>
 
-Built to also serve as a **complete reference for the MCP protocol** — every primitive, exercised with production-shaped code.
+Built to also serve as a **complete reference for the MCP protocol**: every primitive, exercised with production-shaped code.
 
 ---
 
@@ -125,12 +125,12 @@ Subfolders and `study.db` are auto-created on first run.
 <summary><b>Requirements</b></summary>
 
 - **Python 3.10+**
-- **[uv](https://docs.astral.sh/uv/)** — fast Python package manager
-- **MCP-compatible client** — Claude Desktop, Cursor, Cline, etc.
-- **Node.js** — only for the MCP Inspector via `mcp dev`
+- **[uv](https://docs.astral.sh/uv/)**: fast Python package manager
+- **MCP-compatible client**: Claude Desktop, Cursor, Cline, etc.
+- **Node.js**: only for the MCP Inspector via `mcp dev`
 
 Pinned dependencies:
-- `mcp[cli]>=1.27,<2` — the `<2` bound matters; SDK v2 changes import paths
+- `mcp[cli]>=1.27,<2`: the `<2` bound matters; SDK v2 changes import paths
 - `pypdf`
 - `python-docx`
 
@@ -177,7 +177,7 @@ Files moved via `archive_files` land in `materials/archive/`.
 uv run mcp dev study_buddy.py
 ```
 
-Opens the **MCP Inspector** in your browser (via `npx`). List and call every tool, read resources, and preview rendered prompts — all before touching your client.
+Opens the **MCP Inspector** in your browser (via `npx`). List and call every tool, read resources, and preview rendered prompts, all before touching your client.
 
 <img src="assets/inspector-tools.png" alt="MCP Inspector showing the Study Buddy tool list" width="100%" />
 
@@ -211,7 +211,7 @@ Config file:
 ```
 
 > 🔑 **Three things that trip everyone up:**
-> 1. Use **absolute paths** — Claude Desktop's working directory isn't your project folder.
+> 1. Use **absolute paths**: Claude Desktop's working directory isn't your project folder.
 > 2. On Windows, escape backslashes as `\\`.
 > 3. **Fully quit** Claude Desktop from the system tray before reopening. Closing the window isn't enough.
 
@@ -268,7 +268,7 @@ Debug logs → `%APPDATA%\Claude\logs\mcp-server-study-buddy.log`
 |:---|:---|
 | `study://content` | Markdown index of `materials/content/` |
 | `study://pyqs` | Markdown index of `materials/pyqs/` |
-| `study://topics` | Mastery tracker — active + archived |
+| `study://topics` | Mastery tracker: active + archived |
 
 > 💡 **Important:** in Claude Desktop, resources are **user-attached**, not auto-fetched. Tools are model-initiated. Design accordingly.
 
@@ -286,7 +286,7 @@ Teach a topic from your content in any style.
 topic:  normalization
 style:  feynman
 ```
-**Styles:** `default`, `feynman`, `socratic`, `eli5`, `summary`, `exam-cram` — or anything else the model can interpret.
+**Styles:** `default`, `feynman`, `socratic`, `eli5`, `summary`, `exam-cram`, or anything else the model can interpret.
 
 </td>
 <td width="50%" valign="top">
@@ -330,8 +330,8 @@ n:      5
 ## 🛡️ Safety
 
 - All file access confined to `materials/content/`, `materials/pyqs/`, `materials/archive/`
-- Paths validated via `Path.is_relative_to` — blocks `../../.env` traversal
-- Topic strings normalized and fuzzy-matched against registered rows — no silent row creation
+- Paths validated via `Path.is_relative_to`: blocks `../../.env` traversal
+- Topic strings normalized and fuzzy-matched against registered rows: no silent row creation
 - Every input bound (`n`, `days`, `max_results`) enforced via Pydantic `Field` metadata
 
 ---
@@ -343,7 +343,7 @@ n:      5
 | **Text** | `.txt`, `.md` | Direct read |
 | **PDF** | `.pdf` | `pypdf` text extraction |
 | **Word** | `.docx` | `python-docx` extraction |
-| **Image** | `.png`, `.jpg`, `.jpeg`, `.webp` | Returned as MCP `ImageContent` — vision-capable clients read it directly |
+| **Image** | `.png`, `.jpg`, `.jpeg`, `.webp` | Returned as MCP `ImageContent`: vision-capable clients read it directly |
 
 > ⚠️ **Scanned PDFs** have no extractable text. `pypdf` returns empty. OCR (Tesseract) or a text-based version before dropping in.
 
@@ -405,23 +405,23 @@ safe data access
 
 </div>
 
-- **[Official MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)** — `mcp[cli]` with FastMCP
-- **SQLite** — persistent state (stdlib)
-- **Pydantic** — typed inputs (via the SDK)
-- **`pypdf`**, **`python-docx`** — file extraction
-- **`uv`** — dependency management
+- **[Official MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)**: `mcp[cli]` with FastMCP
+- **SQLite**: persistent state (stdlib)
+- **Pydantic**: typed inputs (via the SDK)
+- **`pypdf`**, **`python-docx`**: file extraction
+- **`uv`**: dependency management
 
 ---
 
 ## 📜 License
 
-MIT © [Eshita Kundu](https://github.com/eshitakundu) — see [LICENSE](LICENSE).
+MIT © [Eshita Kundu](https://github.com/eshitakundu) (see [LICENSE](LICENSE)).
 
 ---
 
 <div align="center">
 
-**Built for the [Codédex Monthly Challenge — June 2026](https://www.codedex.io/community/monthly-challenge)**
+**Built for the [Codédex Monthly Challenge, June 2026](https://www.codedex.io/community/monthly-challenge)**
 
 ⭐ Star if this taught you something · 🐛 [Issues](https://github.com/eshitakundu/study-buddy/issues) · 💬 [Discussions](https://github.com/eshitakundu/study-buddy/discussions)
 
