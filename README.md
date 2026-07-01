@@ -57,8 +57,8 @@ Built to also serve as a **complete reference for the MCP protocol** — every p
 
 ```bash
 # 1. Clone
-git clone https://github.com/<your-username>/study-buddy-mcp.git
-cd study-buddy-mcp
+git clone https://github.com/eshitakundu/study-buddy.git
+cd study-buddy
 
 # 2. Install
 uv sync
@@ -140,8 +140,8 @@ Pinned dependencies:
 <summary><b>Install</b></summary>
 
 ```bash
-git clone https://github.com/<your-username>/study-buddy-mcp.git
-cd study-buddy-mcp
+git clone https://github.com/eshitakundu/study-buddy.git
+cd study-buddy
 uv sync
 ```
 
@@ -411,7 +411,7 @@ safe data access
 
 ## 📜 License
 
-MIT © [Eshita Kundu](https://github.com/<your-username>) — see [LICENSE](LICENSE).
+MIT © [Eshita Kundu](https://github.com/eshitakundu) — see [LICENSE](LICENSE).
 
 ---
 
@@ -419,6 +419,6 @@ MIT © [Eshita Kundu](https://github.com/<your-username>) — see [LICENSE](LICE
 
 **Built for the [Codédex Monthly Challenge — June 2026](https://www.codedex.io/community/monthly-challenge)**
 
-⭐ Star if this taught you something · 🐛 [Issues](https://github.com/<your-username>/study-buddy-mcp/issues) · 💬 [Discussions](https://github.com/<your-username>/study-buddy-mcp/discussions)
+⭐ Star if this taught you something · 🐛 [Issues](https://github.com/eshitakundu/study-buddy/issues) · 💬 [Discussions](https://github.com/eshitakundu/study-buddy/discussions)
 
 </div>
