@@ -121,7 +121,7 @@ The `materials` folder is where the user puts their study material.
 
 Here's what mine looked like once I dropped my own DBMS notes and past papers in:
 
-![Sample notes and past papers dropped into materials/content and materials/pyqs](<assets/Screenshot 2026-07-01 131221.png>)
+![Sample notes and past papers dropped into materials/content and materials/pyqs](<assets/content.png>)
 
 ---
 
