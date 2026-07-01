@@ -4,7 +4,47 @@
 
 *Part of the [Study Buddy](README.md) MCP server project.*
 
-**Difficulty:** Intermediate ▰▰▰▱ &nbsp;·&nbsp; **Time:** ~60 minutes
+![Difficulty](https://img.shields.io/badge/difficulty-intermediate-orange)
+![Time](https://img.shields.io/badge/time-~60%20min-blue)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://python.org)
+[![MCP](https://img.shields.io/badge/MCP-1.28-8B5CF6)](https://modelcontextprotocol.io)
+[![Client](https://img.shields.io/badge/client-Claude%20Desktop-D97757)](https://claude.ai/download)
+
+<details>
+<summary><b>📋 Table of contents</b></summary>
+
+**Setup**
+* [What are we building?](#what-are-we-building)
+* [What is MCP?](#what-is-mcp)
+* [What Study Buddy can do](#what-study-buddy-can-do)
+* [Before we start](#before-we-start)
+* [The final architecture](#the-final-architecture)
+
+**Build**
+* [Step 1: Create the server foundation](#step-1-create-the-server-foundation)
+* [Step 2: Safe file access](#step-2-safe-file-access)
+* [Step 3: Reading different types of study material](#step-3-reading-different-types-of-study-material)
+* [Step 4: Tools](#step-4-tools)
+* [Step 5: Search content without dumping every file into the chat](#step-5-search-content-without-dumping-every-file-into-the-chat)
+* [Step 6: Give Study Buddy memory with SQLite](#step-6-give-study-buddy-memory-with-sqlite)
+* [Step 7: Register topics and log results](#step-7-register-topics-and-log-results)
+* [Step 8: Show progress, archive what you've mastered, and find weak topics](#step-8-show-progress-archive-what-youve-mastered-and-find-weak-topics)
+* [Step 9: Discover topics from study material](#step-9-discover-topics-from-study-material)
+* [Step 10: Analyse previous-year question papers](#step-10-analyse-previous-year-question-papers)
+* [Step 11: Clean up with archive_files](#step-11-clean-up-with-archive_files)
+* [Step 12: Resources](#step-12-resources)
+* [Step 13: Prompts](#step-13-prompts)
+* [Wire up the entry point](#wire-up-the-entry-point)
+* [Step 14: Start the server in MCP Inspector](#step-14-start-the-server-in-mcp-inspector)
+* [Step 15: Connect Study Buddy to Claude Desktop](#step-15-connect-study-buddy-to-claude-desktop)
+
+**Wrap-up**
+* [Try it](#try-it)
+* [What this project taught us](#what-this-project-taught-us)
+* [Where to take it next](#where-to-take-it-next)
+* [Source code](#source-code)
+
+</details>
 
 ## What are we building?
 
@@ -65,31 +105,33 @@ Your data stays local. The server exposes only the things you choose. Claude get
 
 ## What Study Buddy can do
 
-* Read notes, Markdown files, PDFs, Word documents, and images
-* Keep notes and past papers in separate folders
-* Search your course content for a topic
-* Discover likely topics from your material
-* Register topics and track quiz performance
-* Show your weakest topics, and archive the ones you've mastered
-* Analyse question patterns in past papers
-* Pull out actual previous-year questions
-* Generate new questions in the style of your past papers
-* Teach a topic in styles like Feynman, Socratic, ELI5, exam-cram, or anything else you ask for
-* Walk through every registered topic in one sitting, weakest first
-* Tidy up by moving files you're done with into an archive folder
-* Save everything locally in SQLite
+Every row below is a real function you'll build and wire up over the next 15 steps, not a marketing bullet:
+
+| Capability | Powered by |
+|:---|:---|
+| Read notes, Markdown, PDFs, Word docs, and images | `read_file` |
+| Search your course content for a topic | `search_content` |
+| Discover likely topics from your material automatically | `discover_topics` |
+| Register topics and log quiz scores against them | `register_topic`, `log_result` |
+| Surface your weakest topics, archive the ones you've mastered | `weakest_topics`, `archive_topic` |
+| Analyse question patterns in past papers (types, marks, common stems) | `extract_pyq_style` |
+| Pull out actual previous-year questions verbatim | `extract_pyq_questions` |
+| Teach a topic in any style: Feynman, Socratic, ELI5, exam-cram, or your own | `study` |
+| Walk through every registered topic in one sitting, weakest first | `study_all` |
+| Tidy up by moving files you're done with into an archive folder | `archive_files` |
+| Remember every quiz attempt across sessions | SQLite (`study.db`) |
 
 ---
 
 ## Before we start
 
-You need:
-
-* Python 3.10 or newer
-* `uv`
-* Claude Desktop
-* Node.js, only because the MCP Inspector uses it
-* Basic Python knowledge, especially functions, decorators, imports, and type hints
+| Requirement | Why |
+|:---|:---|
+| Python 3.10+ | Runtime. `Annotated` types and `str \| None` union syntax need 3.10+. |
+| [`uv`](https://docs.astral.sh/uv/) | Installs dependencies and runs the server; no separate `pip`/`venv` dance. |
+| Claude Desktop | The MCP client you'll connect Study Buddy to. |
+| Node.js | Only for the MCP Inspector: `mcp dev` shells out to `npx`. |
+| Basic Python | Functions, decorators, imports, type hints. You'll see all of these below. |
 
 I used Python 3.12 and pinned the MCP SDK below version 2 because the SDK is evolving quickly and version 2 changes some imports.
 
@@ -982,9 +1024,12 @@ Here's `study://content` reading back through the Inspector's Resources tab, nex
 
 A simple way to remember the difference between the three primitives:
 
-* Use a **tool** when Claude needs to *do* something.
-* Use a **resource** when there's useful context to inspect or attach.
-* Use a **prompt** when the user should be able to start a repeatable workflow.
+| | Tool | Resource | Prompt |
+|:---|:---|:---|:---|
+| **What it is** | An action Claude can call | Context a user can attach or browse | A reusable workflow the user triggers |
+| **Who initiates it** | The model, mid-conversation | The user, from the attachment menu | The user, from the prompt picker |
+| **Use it when** | Claude needs to *do* something | There's useful context to inspect | The user should start a structured workflow |
+| **Study Buddy examples** | `search_content`, `log_result`, `archive_files` | `study://content`, `study://topics` | `study`, `quiz`, `pyq_test` |
 
 One Claude Desktop quirk worth knowing before you move on: resources there are user-attached, not auto-fetched. Claude doesn't quietly read `study://topics` on its own: you (the user) have to explicitly attach it from the paperclip/attachment menu, the same way you'd attach a file. Tools, by contrast, are model-initiated: Claude decides to call them based on the conversation. If you build a resource and then wonder why Claude never seems to "notice" it, this is why.
 
@@ -1000,7 +1045,14 @@ Prompts are reusable workflows.
 
 Instead of typing the same long instruction every time, the user can choose a prompt from the MCP client and fill in a few fields.
 
-Study Buddy has four: studying one topic, studying everything, quizzing, and PYQ practice.
+Study Buddy has four:
+
+| Prompt | Purpose | Key args |
+|:---|:---|:---|
+| `study` | Teach one topic, in whatever style you pick | `topic`, `style` |
+| `study_all` | Walk every active topic in turn | `style`, `order` |
+| `quiz` | Grounded quiz, one question at a time, auto-logged | `topic`, `n` |
+| `pyq_test` | Real past questions, or new ones in that style | `topic`, `mode`, `n` |
 
 The Inspector's Prompts tab is the fastest way to see what a prompt actually asks for before you wire it into a client: pick `study`, and it renders the `topic` and `style` fields straight from the `Field(description=...)` metadata:
 
